@@ -7,6 +7,6 @@ A local custom database sourcing from OpenPowerlifting
 I wanted control over a smaller dataset and to add a few custom features
 
 ## Planned Custom Features
-+ Ability to add lifters to local database via OpenPowerlifting Link
++ Ability to add lifters to local database via OpenPowerlifting links
 + Modify data and add team associations
-+ Custom team sorting and data metrics
++ Custom team sorting, comparisons, and data metrics
