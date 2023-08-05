@@ -4,6 +4,8 @@ import csv
 DATABASE = "over9000.db"
 OVER9000_TABLE = "OVER9000"
 RESULTS_TABLE = "RESULTS"
+OVER9000_HEADERS = ["ID", "NAME", "CSV", "SOCIALS", "TEAM"]
+RESULTS_HEADERS = ["NAME", "SEX", "EVENT", "EQUIPMENT", "AGE", "AGECLASS", "BIRTHYEARCLASS", "DIVISION", "BODYWEIGHTKG", "WEIGHTCLASSKG", "SQUAT1KG", "SQUAT2KG", "SQUAT3KG", "SQUAT4KG", "BEST3SQUATKG", "BENCH1KG", "BENCH2KG", "BENCH3KG", "BENCH4KG", "BEST3BENCHKG", "DEADLIFT1KG", "DEADLIFT2KG", "DEADLIFT3KG", "DEADLIFT4KG", "BEST3DEADLIFTKG", "TOTALKG", "PLACE", "DOTS", "WILKS", "GLOSSBRENNER", "GOODLIFT", "TESTED", "COUNTRY", "STATE", "FEDERATION", "PARENTFEDERATION", "DATE", "MEETCOUNTRY", "MEETSTATE", "MEETTOWN", "MEETNAME", "CSV"]
 
 
 def setup_db():
@@ -20,12 +22,12 @@ def setup_db():
         # create the SQLite database because it doesn't exist
         # create the OVER9000 table
         ### NOTES:
-        # LIFTER_NAME was natively NAME
+        # LIFTER_NAME was natively NAME # NOTE: CHANGED BACK
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS OVER9000 (
-                ID TEXT,
-                LIFTER_NAME TEXT,
-                CSV TEXT,
+                ID TEXT NOT NULL,
+                NAME TEXT NOT NULL,
+                CSV TEXT NOT NULL,
                 SOCIALS TEXT,
                 TEAM TEXT
             );
@@ -40,13 +42,12 @@ def setup_db():
         print("Table RESULTS doesn't exist.\n Creating RESULTS")
         # create the RESULTS table because it doesn't exist
         ### NOTES:
-        # LIFTER_STATE was natively STATE,
-        # MEETDATE was natively DATE,
-        # LIFTER_NAME was natively NAME
+        # LIFTER_STATE was natively STATE, # NOTE: CHANGED BACK
+        # MEETDATE was natively DATE, # NOTE: CHANGED BACK
+        # LIFTER_NAME was natively NAME # NOTE: CHANGED BACK
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS RESULTS (
-                CSV_ID TEXT,
-                LIFTER_NAME TEXT,
+                NAME TEXT,
                 SEX TEXT,
                 EVENT TEXT,
                 EQUIPMENT TEXT,
@@ -82,11 +83,12 @@ def setup_db():
                 LIFTER_STATE TEXT,
                 FEDERATION TEXT,
                 PARENTFEDERATION TEXT,
-                MEETDATE TEXT,
+                DATE TEXT,
                 MEETCOUNTRY TEXT,
-                MEETSTATE TEXT,
+                STATE TEXT,
                 MEETTOWN TEXT,
-                MEETNAME TEXT
+                MEETNAME TEXT,
+                CSV TEXT NOT NULL
             );
         """)
         print("Table RESULTS created")
@@ -103,6 +105,7 @@ def csv_to_sql(csv_data):
 
 def create_entry(lifter_id, csv_data):
     pass
+
 
 
 def read_entry(lifter_id):
