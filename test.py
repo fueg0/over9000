@@ -12,6 +12,7 @@ if __name__ == '__main__':
     for meet in csv_data:
         meet = format_csv_headers(meet)
         meet["CSV"] = csv_link
+        meet["MEET_ID"] = " ".join([meet["MEETNAME"], meet["DIVISION"]])
         formatted_csv_data.append(meet)
     # add CSV link to data
     ## csv_data["CSV"] = csv_link

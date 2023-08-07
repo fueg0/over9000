@@ -55,6 +55,7 @@ def load_csv_data(csv_link):
     # Now rows is a list of dictionaries, each dictionary represents a row in the CSV
     print("in load_csv_data, printing data")  # DEBUG print
     for row in rows:
+        # TODO: maybe just do all formatting in here?
         print(row)  # or do whatever you need to do with the row   # DEBUG print
 
     return rows
