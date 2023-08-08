@@ -2,7 +2,7 @@ import sqlite3
 import csv
 
 NULL = "NULL"
-DATABASE = "data\\over9000.database"
+DATABASE = "data\\over9000.db"
 OVER9000_TABLE = "OVER9000"
 RESULTS_TABLE = "RESULTS"
 OVER9000_HEADERS = ["ID", "NAME", "CSV", "SOCIALS", "TEAM"]
