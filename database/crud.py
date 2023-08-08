@@ -2,13 +2,14 @@ import sqlite3
 import csv
 
 NULL = "NULL"
-DATABASE = "over9000.db"
+DATABASE = "data\\over9000.database"
 OVER9000_TABLE = "OVER9000"
 RESULTS_TABLE = "RESULTS"
 OVER9000_HEADERS = ["ID", "NAME", "CSV", "SOCIALS", "TEAM"]
 RESULTS_HEADERS = ["NAME", "SEX", "EVENT", "EQUIPMENT", "AGE", "AGECLASS", "BIRTHYEARCLASS", "DIVISION", "BODYWEIGHTKG", "WEIGHTCLASSKG", "SQUAT1KG", "SQUAT2KG", "SQUAT3KG", "SQUAT4KG", "BEST3SQUATKG", "BENCH1KG", "BENCH2KG", "BENCH3KG", "BENCH4KG", "BEST3BENCHKG", "DEADLIFT1KG", "DEADLIFT2KG", "DEADLIFT3KG", "DEADLIFT4KG", "BEST3DEADLIFTKG", "TOTALKG", "PLACE", "DOTS", "WILKS", "GLOSSBRENNER", "GOODLIFT", "TESTED", "COUNTRY", "STATE", "FEDERATION", "PARENTFEDERATION", "DATE", "MEETCOUNTRY", "STATE", "MEETTOWN", "MEETNAME", "CSV", "MEET_ID"]
 
 
+# TODO: clean up setup code
 def setup_db():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -109,7 +110,6 @@ def csv_to_sql(csv_data):
 
 def create_entry(lifter_id, csv_data):
     pass
-
 
 
 def read_entry(lifter_id):

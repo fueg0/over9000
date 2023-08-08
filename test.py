@@ -1,8 +1,12 @@
-from over9000 import *
+from database.over9000 import *
 
 if __name__ == '__main__':
+    # LOAD
+    # Load/Connect to DB
     db = load_db()
 
+    # CREATE
+    # Create entry in DB
     csv_link = get_csv_link(NF)
     print("LINK: ", NF)  # DEBUG print
     print("CSV LINK: ", csv_link)  # DEBUG print
@@ -19,15 +23,63 @@ if __name__ == '__main__':
     print("Data from load_csv_data: \n", formatted_csv_data, "\n")
 
     db.create_entry(NF, formatted_csv_data)
-    res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
-    for row in res:
+    o9k_res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
+
+    # SELECT
+    # Select data from Db
+    print("\nAFTER SELECT: \nOVER9000\n")  # DEBUG print
+
+    for row in o9k_res:
         print(row)  # DEBUG print
+
     res = db.conn.execute("SELECT NAME,SEX,EVENT,EQUIPMENT,AGE,AGECLASS,BIRTHYEARCLASS,DIVISION,BODYWEIGHTKG,"
                           "WEIGHTCLASSKG,SQUAT1KG from RESULTS")
+
+    print("\nRESULTS\n")
+
     for row in res:
         print(row)  # DEBUG print
-    # EXAMPLE ENTRY:
-    # conn.execute("INSERT INTO OVER9000 (ID,NAME,AGE,ADDRESS,SALARY) \
-    #               VALUES (1, 'Paul', 32, 'California', 20000.00 )");
 
+    # UPDATE
+    # Update value in DB
+    print("\n update\n")
+    o9k_res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
+
+    for lifter in o9k_res:
+        # NOTE: NEEDS STR_CAST HERE BECASUE OF THE DAMN COLON
+        lifter_id = str_cast(lifter[0])
+        print(lifter)  # DEBUG print
+        print(lifter_id)  # DEBUG print
+        new_val = str_cast("Nicholas Fuego")
+        print(new_val)  # DEBUG print
+        update_cmd = f"UPDATE OVER9000 set NAME = {new_val} where ID = {lifter_id}"
+        print(update_cmd)  # DEBUG print
+        # TODO: update name in results pivot
+        db.conn.execute(update_cmd)
+        print("Total number of rows updated :", db.conn.total_changes)
+
+        update_res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
+        db.conn.commit()
+
+        # UPDATE TEST
+        # Select data from Db
+        print("\nAFTER UPDATE: \nOVER9000\n")  # DEBUG print
+
+        for row in update_res:
+            print(row)  # DEBUG print
+
+        print("reset name")
+        update_res = db.conn.execute(f"UPDATE OVER9000 set NAME = \"Nicholas Fiorito\" where ID = {lifter_id}")
+        db.conn.commit()
+
+    # Check update revert worked
+    o9k_res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
+
+    for row in o9k_res:
+        print(row)  # DEBUG print
+
+    # DELETE
+    # Delete entry in DB
+
+    db.conn.close()
     exit(0)

@@ -1,6 +1,6 @@
 import csv
 from io import StringIO
-import crud
+from database import crud
 import requests
 from bs4 import BeautifulSoup
 
@@ -122,6 +122,8 @@ class Database:
         # RESULTS table entries
         csv_data = format_csv_data(csv_data)
         RESULTS_SQL_HEADERS = ",".join(self.results_headers)
+
+        # TODO: can use a multiple execute here if I knew how to SQL
         for meet in csv_data:
             RESULTS_SQL_VALUES = ",".join(meet.values())
 
@@ -134,10 +136,11 @@ class Database:
         self.conn.commit()
         # CONTINUE here
 
-    def read_entry(self, lifter_id):
+    # SELECT from test
+    def read_entry(self, lifter_id, fields):
         pass
 
-    def update_entry(self, lifter_id, field, new_val):
+    def update_entry(self, lifter_id, table, fields, new_vals):
         pass
 
     def delete_entry(self, lifter_id):
