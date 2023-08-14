@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 NF = "https://www.openpowerlifting.org/u/nicholasfiorito"
+WS = "https://www.openpowerlifting.org/u/walisiddiqui"
 
 
 # will set up DB if not existent and create a c sqlite onnection

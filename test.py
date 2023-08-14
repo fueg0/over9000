@@ -97,7 +97,7 @@ def test_update_operation(database):
             print(row)  # DEBUG print
 
         print("restore name")
-        update_res = db.conn.execute(f"UPDATE OVER9000 set NAME = \"Nicholas Fiorito\" where ID = {lifter_id}")
+        db.conn.execute(f"UPDATE OVER9000 set NAME = \"Nicholas Fiorito\" where ID = {lifter_id}")
         db.conn.commit()
 
     # Check update revert worked
@@ -115,7 +115,46 @@ def test_update_operation(database):
 
 def test_delete_operation(database):
     db = database
+    print("delete")
 
+    csv_link = get_csv_link(WS)
+    print("LINK: ", WS)  # DEBUG print
+    print("CSV LINK: ", csv_link)  # DEBUG print
+
+    csv_data = load_csv_data(csv_link)
+    formatted_csv_data = []
+    for meet in csv_data:
+        meet = format_csv_headers(meet)
+        meet["CSV"] = csv_link
+        meet["MEET_ID"] = " ".join([meet["MEETNAME"], meet["DIVISION"]])
+        formatted_csv_data.append(meet)
+    # add CSV link to data
+    ## csv_data["CSV"] = csv_link
+    print("Data from load_csv_data: \n", formatted_csv_data, "\n")
+
+    db.create_entry(WS, formatted_csv_data)
+    o9k_res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
+
+    print("\nAFTER SELECT: \nOVER9000\n")  # DEBUG print
+
+    for row in o9k_res:
+        print(row)  # DEBUG print
+
+    db.conn.execute(f"DELETE from OVER9000 where ID = {str_cast(WS)};")
+    print("Total number of rows updated OVER9000 :", db.conn.total_changes)
+
+
+    db.conn.execute(f"DELETE from RESULTS where CSV = {str_cast(csv_link)};")
+    print("Total number of rows updated RESULTS :", db.conn.total_changes)
+
+    del_o9k_res = db.conn.execute("SELECT * from OVER9000")
+    for row in del_o9k_res:
+        print(row)  # DEBUG print
+    del_results_res = db.conn.execute("SELECT * from RESULTS")
+    for row in del_results_res:
+        print(row)  # DEBUG print
+
+    db.conn.commit()
     db.conn.close()
 
 
@@ -197,6 +236,8 @@ if __name__ == '__main__':
 
     for row in o9k_res:
         print(row)  # DEBUG print
+
+    test_delete_operation(db)
 
     # DELETE
     # Delete entry in DB
