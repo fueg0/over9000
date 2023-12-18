@@ -93,7 +93,7 @@ class Database:
         self.results_headers = crud.RESULTS_HEADERS
         self.conn = connection
 
-    # TODO: abstract some of this to crud, crud.create() not doing anything righ now
+    # TODO: abstract some of this to crud, crud.create() not doing anything right now
     # create entry into OVER9000 and related entries into RESULTS
     def create_entry(self, lifter_id, csv_data):
         pass
