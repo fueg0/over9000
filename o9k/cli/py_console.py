@@ -1,4 +1,5 @@
-import db
+import o9k.database.db as db
+import o9k.o9k_utils.utils as utils
 
 NF = "https://www.openpowerlifting.org/u/nicholasfiorito"
 WS = "https://www.openpowerlifting.org/u/walisiddiqui"
@@ -10,10 +11,11 @@ usage_msg = "Usage:\n \
           D | DELETE [openpowerlifting link, ...]\n \
           E | EXIT\n\n"
 
-
-def load_db():
-    conn = db.Database()
-    return conn
+create = ["C", "CREATE"]
+read = ["R", "READ"]
+update = ["U", "UPDATE"]
+delete = ["D", "DELETE"]
+ex = ["E"]
 
 
 def float_cast(value):
@@ -25,18 +27,17 @@ def error_msg(msg):
     print(usage_msg)
 
 
-def main():
-    create = ["C", "CREATE"]
-    read = ["R", "READ"]
-    update = ["U", "UPDATE"]
-    delete = ["D", "DELETE"]
-    ex = ["E"]
+def init_o9k():
     print(f'Welcome to Over9000\n\n')
     print("Initialzing database...")
-
-    main_db = load_db()
-
+    main_db = db.Database()
     print(usage_msg)
+
+    return main_db
+
+
+def main():
+    main_db = init_o9k()
 
     while True:
         op = input("give an operation:\n").split()
@@ -58,10 +59,46 @@ def main():
         if op[0] in delete:
             pass
         if op[0] in ex:
-            exit(1000)
+            break
         else:
             error_msg("unsupported operation")
             continue
+    print("Exiting Over9000")
+    main_db.conn.close()
+
+
+def single_main():
+    main_db = init_o9k()
+
+    while True:
+        op = input("give an operation:\n").split()
+
+        if op[0] in create:
+            if len(op) > 2:
+                link = op[1:]
+            elif len(op) == 2:
+                link = list(op[1])
+            else:
+                error_msg("Provide at least one openpowerlifting link to CREATE / C")
+                continue
+            res = main_db.create_entry(link)
+            print(res)
+            break
+        if op[0] in read:
+            break
+        if op[0] in update:
+            break
+        if op[0] in delete:
+            break
+        if op[0] in ex:
+            exit(1000)
+        else:
+            error_msg("unsupported operation")
+            break
+
+        print("Exiting Over9000")
+        main_db.conn.close()
+        exit(int(111))
 
 
 # Press the green button in the gutter to run the script.
