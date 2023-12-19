@@ -1,4 +1,4 @@
-from website import create_app
+from o9k.website import create_app
 
 app = create_app()
 
