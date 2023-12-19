@@ -1,64 +1,12 @@
-from database.over9000 import *
+from o9k.o9k_utils.utils import *
+from o9k.database.db import *
+from o9k.cli.py_console import *
 
 # hot damn maybe school was right about writing unit tests
+NF = "https://www.openpowerlifting.org/u/nicholasfiorito"
+WS = "https://www.openpowerlifting.org/u/walisiddiqui"
 
-
-# test create entry
-def test_create_operation(database_object):
-    db = database_object
-
-    # CREATE
-    # Create entry in DB
-    csv_link = get_csv_link(NF)
-    print("LINK: ", NF)  # DEBUG print
-    print("CSV LINK: ", csv_link)  # DEBUG print
-
-    csv_data = load_csv_data(csv_link)
-    formatted_csv_data = []
-    for meet in csv_data:
-        meet = format_csv_headers(meet)
-        meet["CSV"] = csv_link
-        meet["MEET_ID"] = " ".join([meet["MEETNAME"], meet["DIVISION"]])
-        formatted_csv_data.append(meet)
-    # add CSV link to data
-    ## csv_data["CSV"] = csv_link
-    print("Data from load_csv_data: \n", formatted_csv_data, "\n")
-
-    db.create_entry(NF, formatted_csv_data)
-    o9k_res = db.conn.execute("SELECT ID, NAME, CSV from OVER9000")
-
-    # assert ID = NF
-    # assert NAME = formatted_csv_data["NAME"]
-    # assert CSV = formatted_csv_data["CSV"]
-
-    # READ
-    # Read data from DB
-    print("\nAFTER SELECT: \nOVER9000\n")  # DEBUG print
-
-    for row in o9k_res:
-        print(row)  # DEBUG print
-
-    res = db.conn.execute("SELECT NAME,SEX,EVENT,EQUIPMENT,AGE,AGECLASS,BIRTHYEARCLASS,DIVISION,BODYWEIGHTKG,"
-                          "WEIGHTCLASSKG,SQUAT1KG, MEET_ID from RESULTS")
-
-    print("\nRESULTS\n")
-
-    for row in res:
-        print(row)  # DEBUG print
-
-    # assert for row, match MEET_ID to correct formatted_csv_data meet
-    # assert NAME
-    # assert SEX
-    # assert EVENT
-    # assert EQUIPMENT
-    # assert AGE
-    # assert AGECLASS
-    # assert BIRTHYEARCLASS
-    # assert DIVISION
-    # assert BODYWEIGHTKG
-    # assert WEIGHTCLASSKG
-    # assert SQUAT1KG
-    db.conn.close()
+DEBUG = False
 
 
 def test_update_operation(database):
@@ -124,7 +72,7 @@ def test_delete_operation(database):
     csv_data = load_csv_data(csv_link)
     formatted_csv_data = []
     for meet in csv_data:
-        meet = format_csv_headers(meet)
+        #meet = format_csv_headers(meet)
         meet["CSV"] = csv_link
         meet["MEET_ID"] = " ".join([meet["MEETNAME"], meet["DIVISION"]])
         formatted_csv_data.append(meet)
@@ -162,7 +110,7 @@ def test_delete_operation(database):
 if __name__ == '__main__':
     # LOAD
     # Load/Connect to DB
-    db = load_db()
+    db = init_o9k()
 
     # CREATE
     # Create entry in DB
