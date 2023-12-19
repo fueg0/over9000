@@ -1,22 +1,26 @@
 import sqlite3
 import csv
+from io import StringIO
+
+import o9k.o9k_utils.utils as utils
 
 import requests
 from bs4 import BeautifulSoup
 
+DEBUG = True
 NULL = "NULL"
-DATABASE = "data\\over9000.db"
+DATABASE = "over9000.db"
 USERS_TABLE = "USERS"
 RESULTS_TABLE = "RESULTS"
 USER_HEADERS = ["ID", "NAME", "CSV", "SOCIALS", "TEAM"]
-RESULTS_HEADERS = ["MeetID", "Name", "Sex", "Event", "Equipment", "Age", "AgeClass",
+RESULTS_HEADERS = ["Name", "Sex", "Event", "Equipment", "Age", "AgeClass",
                    "BirthYearClass", "Division", "BodyweightKg", "WeightClassKg",
                    "Squat1Kg", "Squat2Kg", "Squat3Kg", "Squat4Kg", "Best3SquatKg",
                    "Bench1Kg", "Bench2Kg", "Bench3Kg", "Bench4Kg", "Best3BenchKg",
                    "Deadlift1Kg", "Deadlift2Kg", "Deadlift3Kg", "Deadlift4Kg", "Best3DeadliftKg",
                    "TotalKg", "Place", "Dots", "Wilks", "Glossbrenner", "Goodlift",
                    "Tested", "Country", "State", "Federation", "ParentFederation",
-                   "Date", "MeetCountry", "MeetState", "MeetTown", "MeetName", "CSV"]
+                   "Date", "MeetCountry", "MeetState", "MeetTown", "MeetName", "CSV", "MeetID"]
 
 reals = RESULTS_HEADERS[9:32]
 
@@ -25,7 +29,7 @@ reals = RESULTS_HEADERS[9:32]
 #   DATABASE CREATION   #
 #                       #
 # TODO: clean up setup code
-def setup_db():
+def setup_db(debug=DEBUG):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
@@ -39,8 +43,8 @@ def setup_db():
         ### NOTES:
         # LIFTER_NAME was natively NAME # NOTE: CHANGED BACK
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS OVER9000 (
-                ID TEXT NOT NULL,
+            CREATE TABLE IF NOT EXISTS USERS (
+                ID TEXT PRIMARY KEY,
                 NAME TEXT NOT NULL,
                 CSV TEXT NOT NULL,
                 SOCIALS TEXT,
@@ -58,8 +62,7 @@ def setup_db():
         print("Table RESULTS doesn't exist.\n Creating RESULTS")
         # create the RESULTS table because it doesn't exist
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS Results (
-                MeetID TEXT PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS RESULTS (
                 Name TEXT,
                 Sex TEXT,
                 Event TEXT,
@@ -100,8 +103,9 @@ def setup_db():
                 MeetCountry TEXT,
                 MeetState TEXT,
                 MeetTown TEXT,
-                MeetName TEXT
+                MeetName TEXT,
                 CSV TEXT NOT NULL,
+                MeetID TEXT PRIMARY KEY,
                 UNIQUE (MeetID) ON CONFLICT IGNORE
             );
         """)
@@ -139,7 +143,7 @@ def get_csv_link(link):
     return csv_link
 
 
-def load_csv_data(csv_link):
+def load_csv_data(csv_link, debug=DEBUG):
     full_link = "https://www.openpowerlifting.org" + csv_link
     # Get the CSV data
     response = requests.get(full_link)  # you may need to adjust the URL
@@ -151,22 +155,32 @@ def load_csv_data(csv_link):
 
     # Now rows is a list of dictionaries, each dictionary represents a row in the CSV
     print("in load_csv_data, printing data")  # DEBUG print
-    for row in rows:
-        # TODO: maybe just do all formatting in here?
-        print(row)  # or do whatever you need to do with the row   # DEBUG print
+    utils.debug_print(f"csv before processing: {rows}", debug)  # DEBUG print
 
-    return rows
-
-
-# Convert dict data to sql entries
-def csv_to_sql(csv_data):
-    for meet in csv_data:
+    for meet in rows:
+        meet["CSV"] = csv_link
+        meet["MeetID"] = " ".join([meet["Name"], "-", meet["MeetName"], "-", meet["Division"]])
         for k, v in meet.items():
             if not len(v):
                 meet[k] = NULL
             else:
                 meet[k] = str_cast(v)
-# TODO: START HERE BUDDY, WE'RE DOING CREATE_ENTRY AND NEED ALL THE FORMATTING DONE OUTSIDE SO THE SQL QUERY IS EASY
+    # TODO: START HERE BUDDY, WE'RE DOING CREATE_ENTRY AND NEED ALL THE FORMATTING DONE OUTSIDE SO THE SQL QUERY IS EASY
+
+    return rows
+
+
+# Convert dict data to sql entries
+def csv_processing(csv_data, debug=DEBUG):
+    for meet in csv_data:
+
+        for k, v in meet.items():
+            if not len(v):
+                meet[k] = NULL
+            else:
+                meet[k] = str_cast(v)
+    # TODO: START HERE BUDDY, WE'RE DOING CREATE_ENTRY AND NEED ALL THE FORMATTING DONE OUTSIDE SO THE SQL QUERY IS EASY
+
     return csv_data
 
 
@@ -176,49 +190,56 @@ class Database:
         self.results_headers = RESULTS_HEADERS
         self.conn = setup_db()
 
+    def create_lifter(self, op_link, csv_data, csv_link, debug=DEBUG):
+        LIFTER_HEADERS = ",".join(self.user_headers)
+
+        lifter_entry = [str_cast(op_link), csv_data[0]["Name"], csv_data[0]["CSV"], NULL, NULL]
+        utils.debug_print(f"values list: {lifter_entry}", debug)  # DEBUG print
+        LIFTER_VALUES = ",".join(lifter_entry)
+
+        create_lifter_command = f"INSERT INTO {USERS_TABLE} ({LIFTER_HEADERS}) " \
+                               f"VALUES ({LIFTER_VALUES})"
+
+        utils.debug_print(f"create_lifter SQL: {create_lifter_command}", debug)  ## work on format_csv_data, values are not cast properly
+        self.conn.execute(create_lifter_command)
+        self.conn.commit()
+
     # TODO: abstract some of this to crud, crud.create() not doing anything right now
     # create entry into OVER9000 and related entries into RESULTS
-    def create_entry(self, op_link):
-        # TODO: OP_LINK IS A FUCKING LIST DONT FORGET
-        csv_link = get_csv_link(op_link)
-        csv_data = load_csv_data(csv_link)
-        formatted_csv = csv_to_sql(csv_data)
+    def create_entry(self, op_links, debug=DEBUG):
+        utils.debug_print(f"create_entry:: \nop_links: {op_links}", debug)
 
-        pass
-        # csv_data = load_csv_data(get_csv_link(lifter_id))
-        print("csv_data_as_dict: ", csv_data)  # DEBUG print
+        for op_link in op_links:
+            utils.debug_print(f"create_entry:: \nop_link: {op_link}", debug)
+            csv_link = get_csv_link(op_link)
+            csv_data = load_csv_data(csv_link)
 
-        # sql_data = crud.create_entry(lifter_id, csv_data)
+            cursor = self.conn.execute('select * from RESULTS')
+            print("\n COLNAMES \n")
+            colnames = cursor.description
+            for row in colnames:
+                print(row[0])
+                print(row[1])
 
-        # OVER9000 table entry
-        OVER9K_SQL_HEADERS = ",".join(self.user_headers)
+            utils.debug_print(f"csv after processing: {csv_data}", debug)  # DEBUG print
+            # Create LIFTER entry
+            self.create_lifter(op_link, csv_data, csv_link)
 
-        values_list = [op_link, csv_data[0]["NAME"], csv_link, NULL, NULL]
-        print("values list: ", values_list)  # DEBUG print
-        OVER9K_SQL_VALUES = ",".join(values_list)
+            # Create RESULTS entry
+            # self.create_results(csv_data, )
+            RESULTS_SQL_HEADERS = ",".join(self.results_headers)
 
-        sql_over9000_command = f"INSERT INTO {USERS_TABLE} ({OVER9K_SQL_HEADERS}) " \
-                               f"VALUES ({OVER9K_SQL_VALUES})"
+            # TODO: can use a multiple execute here if I knew how to SQL
+            for meet in csv_data:
+                RESULTS_SQL_VALUES = ",".join(meet.values())
 
-        print("SQL_OVER9000_COMMAND: ", sql_over9000_command)  ## work on format_csv_data, values are not cast properly
-        self.conn.execute(sql_over9000_command)
-        self.conn.commit()
+                sql_results_command = f"INSERT INTO {RESULTS_TABLE} ({RESULTS_SQL_HEADERS}) " \
+                                      f"VALUES ({RESULTS_SQL_VALUES})"
 
-        # RESULTS table entries
-        csv_data = format_csv_data(csv_data)
-        RESULTS_SQL_HEADERS = ",".join(self.results_headers)
+                print("SQL_RESULT_COMMAND: ", sql_results_command)
+                self.conn.execute(sql_results_command)
 
-        # TODO: can use a multiple execute here if I knew how to SQL
-        for meet in csv_data:
-            RESULTS_SQL_VALUES = ",".join(meet.values())
-
-            sql_results_command = f"INSERT INTO {RESULTS_TABLE} ({RESULTS_SQL_HEADERS}) " \
-                                  f"VALUES ({RESULTS_SQL_VALUES})"
-
-            print("SQL_RESULT_COMMAND: ", sql_results_command)
-            self.conn.execute(sql_results_command)
-
-        self.conn.commit()
+            self.conn.commit()
         # CONTINUE here
 
     # SELECT from test
