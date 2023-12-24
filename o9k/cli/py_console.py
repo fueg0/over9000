@@ -15,7 +15,7 @@ create = ["C", "CREATE"]
 read = ["R", "READ"]
 update = ["U", "UPDATE"]
 delete = ["D", "DELETE"]
-ex = ["E"]
+ex = ["E", "EXIT"]
 
 
 def float_cast(value):

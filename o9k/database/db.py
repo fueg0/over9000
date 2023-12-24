@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 DEBUG = True
 NULL = "NULL"
-DATABASE = "over9000.db"
+DATABASE = "..\\over9000.db"
 USERS_TABLE = "USERS"
 RESULTS_TABLE = "RESULTS"
 USER_HEADERS = ["ID", "NAME", "CSV", "SOCIALS", "TEAM"]
@@ -28,7 +28,6 @@ reals = RESULTS_HEADERS[9:32]
 #                       #
 #   DATABASE CREATION   #
 #                       #
-# TODO: clean up setup code
 def setup_db(debug=DEBUG):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -165,7 +164,6 @@ def load_csv_data(csv_link, debug=DEBUG):
                 meet[k] = NULL
             else:
                 meet[k] = str_cast(v)
-    # TODO: START HERE BUDDY, WE'RE DOING CREATE_ENTRY AND NEED ALL THE FORMATTING DONE OUTSIDE SO THE SQL QUERY IS EASY
 
     return rows
 
@@ -198,13 +196,26 @@ class Database:
         LIFTER_VALUES = ",".join(lifter_entry)
 
         create_lifter_command = f"INSERT INTO {USERS_TABLE} ({LIFTER_HEADERS}) " \
-                               f"VALUES ({LIFTER_VALUES})"
+                                f"VALUES ({LIFTER_VALUES})"
 
-        utils.debug_print(f"create_lifter SQL: {create_lifter_command}", debug)  ## work on format_csv_data, values are not cast properly
+        utils.debug_print(f"create_lifter SQL: {create_lifter_command}",
+                          debug)  ## work on format_csv_data, values are not cast properly
         self.conn.execute(create_lifter_command)
         self.conn.commit()
 
-    # TODO: abstract some of this to crud, crud.create() not doing anything right now
+    def create_results(self, csv_data, debug=DEBUG):
+        RESULTS_HEADERS = ",".join(self.results_headers)
+
+        # TODO: can use a multiple execute here if I knew how to SQL
+        for meet in csv_data:
+            RESULTS_SQL_VALUES = ",".join(meet.values())
+
+            sql_results_command = f"INSERT INTO {RESULTS_TABLE} ({RESULTS_HEADERS}) VALUES ({RESULTS_SQL_VALUES})"
+
+            utils.debug_print(f"create_results SQL: {sql_results_command}", debug)
+            self.conn.execute(sql_results_command)
+            self.conn.commit()
+
     # create entry into OVER9000 and related entries into RESULTS
     def create_entry(self, op_links, debug=DEBUG):
         utils.debug_print(f"create_entry:: \nop_links: {op_links}", debug)
@@ -214,40 +225,92 @@ class Database:
             csv_link = get_csv_link(op_link)
             csv_data = load_csv_data(csv_link)
 
-            cursor = self.conn.execute('select * from RESULTS')
-            print("\n COLNAMES \n")
-            colnames = cursor.description
-            for row in colnames:
-                print(row[0])
-                print(row[1])
-
+            # TODO: check if op_link exists before doing all the stuff
             utils.debug_print(f"csv after processing: {csv_data}", debug)  # DEBUG print
             # Create LIFTER entry
             self.create_lifter(op_link, csv_data, csv_link)
 
+            # TODO: check if MeetID exists before doing all the stuff
             # Create RESULTS entry
-            # self.create_results(csv_data, )
-            RESULTS_SQL_HEADERS = ",".join(self.results_headers)
+            self.create_results(csv_data)
 
-            # TODO: can use a multiple execute here if I knew how to SQL
-            for meet in csv_data:
-                RESULTS_SQL_VALUES = ",".join(meet.values())
+    def read_results(self, lifter_id, fields, debug=DEBUG):
+        fields = ", ".join(fields)
+        select_query = f"SELECT {fields} from RESULTS WHERE CSV = ?"
+        utils.debug_print(f"read_entry:: {select_query}", debug)
+        res = self.conn.execute(select_query, (lifter_id,))
 
-                sql_results_command = f"INSERT INTO {RESULTS_TABLE} ({RESULTS_SQL_HEADERS}) " \
-                                      f"VALUES ({RESULTS_SQL_VALUES})"
+        return res
 
-                print("SQL_RESULT_COMMAND: ", sql_results_command)
-                self.conn.execute(sql_results_command)
+    def read_user(self, lifter_id, fields, debug=DEBUG):
+        fields = ", ".join(fields)
+        select_query = f"SELECT {fields} from USERS WHERE CSV = ?"
+        utils.debug_print(f"read_entry:: {select_query}", debug)
+        res = self.conn.execute(select_query, (lifter_id,))
 
-            self.conn.commit()
-        # CONTINUE here
+        return res
 
-    # SELECT from test
-    def read_entry(self, lifter_id, fields):
-        pass
+    # SELECT
+    def read_entry(self, lifter_id, fields, table, debug=DEBUG):
+        if table == "USERS":
+            res = self.read_user(lifter_id, fields)
+        elif table == "RESULTS":
+            res = self.read_results(lifter_id, fields)
+        else:
+            res = "INVALID TABLE CHOICE"
 
-    def update_entry(self, lifter_id, table, fields, new_vals):
-        pass
+        return res
+
+    def update_results(self, lifter_id, fields, new_vals):
+        # Ensure the lengths of fields and values match
+        if len(fields) != len(new_vals):
+            raise ValueError("The number of fields and values must be the same")
+
+        # Create the 'SET' part of the SQL statement
+        set_clause = ', '.join([f"{field} = ?" for field in fields])
+
+        # Construct the complete SQL query
+        update_query = f"UPDATE RESULTS SET {set_clause} WHERE MeetID = ?"
+
+        # Execute the query
+        self.conn.execute(update_query, (*new_vals, lifter_id))
+        self.conn.commit()
+
+        # TODO: this implementation is chiefed, gotta come back to this
+        csv_link_query = f"SELECT CSV from RESULTS WHERE MeetID = ?"
+        csv_link = self.conn.execute(csv_link_query, (lifter_id,))
+        res = ""
+        for link in csv_link:
+            res = self.read_results(link[0], fields)
+        return res
+
+    def update_user(self, lifter_id, fields, new_vals):
+        # Ensure the lengths of fields and values match
+        if len(fields) != len(new_vals):
+            raise ValueError("The number of fields and values must be the same")
+
+        # Create the 'SET' part of the SQL statement
+        set_clause = ', '.join([f"{field} = ?" for field in fields])
+
+        # Construct the complete SQL query
+        update_query = f"UPDATE USERS SET {set_clause} WHERE CSV = ?"
+
+        # Execute the query
+        self.conn.execute(update_query, (*new_vals, lifter_id))
+        self.conn.commit()
+
+        res = self.read_user(lifter_id, fields)
+        return res
+
+    def update_entry(self, lifter_id, fields, new_vals, table):
+        if table == "USERS":
+            res = self.update_user(lifter_id, fields, new_vals)
+        elif table == "RESULTS":
+            res = self.update_results(lifter_id, fields, new_vals)
+        else:
+            res = "INVALID TABLE CHOICE"
+
+        return res
 
     def delete_entry(self, lifter_id):
         pass

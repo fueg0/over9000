@@ -63,13 +63,45 @@ if __name__ == '__main__':
     test_db = db.Database()
     o9k_res = test_db.conn.execute("SELECT ID, NAME, CSV from USERS")
 
-    select_query = "SELECT Name,Sex,Division,BodyweightKG,WeightClassKg,Squat2Kg,Bench2Kg,Deadlift2Kg,MeetID from RESULTS where CSV = ?"
-    res = test_db.conn.execute(select_query, (csv_link,))
+    select_query = f"SELECT Squat2Kg, Bench2Kg, Deadlift2Kg, MeetID from RESULTS"
+    res = test_db.conn.execute(select_query)
 
     print("\nRESULTS\n")
 
+    for row in o9k_res:
+        print(row)  # DEBUG print
+
     for row in res:
         print(row)  # DEBUG print
+
+
+    print("TEST READ")
+    fields = ["Squat2Kg", "Bench2Kg", "Deadlift2Kg", "MeetID"]
+    res_results = test_db.read_entry(csv_link, fields, "RESULTS")
+    for res in res_results:
+        print(res)
+
+    fields = ["NAME", "CSV", "TEAM"]
+    user_results = test_db.read_entry(csv_link, fields, "USERS")
+    for res in user_results:
+        print(res)
+
+    print("TEST UPDATE")
+    meet_id = 'Nicholas Fiorito - Raw Collegiate Cup and Massachusetts Collegiate States - MR-C'
+    fields = ["Name"]
+    new_vals = ["Nick Fuego"]
+    table = "RESULTS"
+    update_res = test_db.update_entry(meet_id, fields, new_vals, table)
+    for res in update_res:
+        print(res)
+
+    meet_id = csv_link
+    fields = ["NAME"]
+    new_vals = ["Nick Fuego"]
+    table = "USERS"
+    update_res = test_db.update_entry(meet_id, fields, new_vals, table)
+    for res in update_res:
+        print(res)
 
     test_db.conn.close()
 
