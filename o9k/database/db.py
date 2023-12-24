@@ -312,8 +312,43 @@ class Database:
 
         return res
 
-    def delete_entry(self, lifter_id):
-        pass
+    def delete_user(self, lifter_id):
+        # Construct the SQL delete query
+        delete_query = "DELETE FROM USERS WHERE CSV = ?"
+
+        res = self.read_user(lifter_id, ["NAME", "CSV", "TEAM"])
+
+        # Execute the query
+        self.conn.execute(delete_query, (lifter_id,))
+        self.conn.commit()
+
+        return res
+
+    def delete_results(self, lifter_id):
+        # Construct the SQL delete query
+        delete_query = "DELETE FROM RESULTS WHERE MeetID = ?"
+
+        csv_query = f"SELECT CSV from RESULTS WHERE MeetID = ?"
+        csv_id = self.conn.execute(csv_query, (lifter_id,))
+        res = self.read_results(csv_id, ["Squat2Kg", "Bench2Kg", "Deadlift2Kg", "MeetID"])
+
+        # Execute the query
+        self.conn.execute(delete_query, (lifter_id,))
+        self.conn.commit()
+
+        return res
+
+    def delete_entry(self, lifter_id, table):
+        if table == "USERS":
+            res = self.delete_user(lifter_id)
+        elif table == "RESULTS":
+            res = self.delete_results(lifter_id)
+        else:
+            res = "INVALID TABLE CHOICE"
+
+        return res
 
     def refresh_entry(self, lifter_id):
         pass
+
+
