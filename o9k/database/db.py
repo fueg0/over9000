@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 DEBUG = True
 NULL = "NULL"
-DATABASE = "..\\over9000.db"
+DATABASE = "..\\o9k.db"
 USERS_TABLE = "USERS"
 RESULTS_TABLE = "RESULTS"
 USER_HEADERS = ["ID", "NAME", "CSV", "SOCIALS", "TEAM"]

@@ -53,27 +53,38 @@ def test_console(op_link, debug=DEBUG):
 if __name__ == '__main__':
     # CREATE
     # Create entry in DB
-    csv_link = db.get_csv_link(NF)
-    print("LINK: ", NF)  # DEBUG print
-    print("CSV LINK: ", csv_link)  # DEBUG print
+    links = ["https://www.openpowerlifting.org/u/nicholasfiorito",
+             "https://www.openpowerlifting.org/u/walisiddiqui",
+             "https://www.openpowerlifting.org/u/thomaszuccarello",
+             "https://www.openpowerlifting.org/u/louieliu",
+             "https://www.openpowerlifting.org/u/katedriscoll",
+             "https://www.openpowerlifting.org/u/duncanmichaud"
+             ]
+    for link in links:
+        csv_link = db.get_csv_link(link)
+        print("LINK: ", link)  # DEBUG print
+        print("CSV LINK: ", csv_link)  # DEBUG print
 
-    test_create_operation_INPUT = [NF]
+        test_create_operation_INPUT = [link]
 
-    test_create_operation(test_create_operation_INPUT)
+        test_create_operation(test_create_operation_INPUT)
+        test_db = db.Database()
+        o9k_res = test_db.conn.execute("SELECT ID, NAME, CSV from USERS")
+
+        select_query = f"SELECT Squat2Kg, Bench2Kg, Deadlift2Kg, MeetID from RESULTS"
+        res = test_db.conn.execute(select_query)
+
+        print("\nRESULTS\n")
+
+        for row in o9k_res:
+            print(row)  # DEBUG print
+
+        for row in res:
+            print(row)  # DEBUG print
+
+        test_db.conn.close()
+
     test_db = db.Database()
-    o9k_res = test_db.conn.execute("SELECT ID, NAME, CSV from USERS")
-
-    select_query = f"SELECT Squat2Kg, Bench2Kg, Deadlift2Kg, MeetID from RESULTS"
-    res = test_db.conn.execute(select_query)
-
-    print("\nRESULTS\n")
-
-    for row in o9k_res:
-        print(row)  # DEBUG print
-
-    for row in res:
-        print(row)  # DEBUG print
-
 
     print("TEST READ")
     fields = ["Squat2Kg", "Bench2Kg", "Deadlift2Kg", "MeetID"]
@@ -104,6 +115,3 @@ if __name__ == '__main__':
         print(res)
 
     test_db.conn.close()
-
-
-
