@@ -27,10 +27,10 @@ def error_msg(msg):
     print(usage_msg)
 
 
-def init_o9k():
+def init_o9k(database=None):
     print(f'Welcome to Over9000\n\n')
     print("Initialzing database...")
-    main_db = db.Database()
+    main_db = db.Database(database)
     print(usage_msg)
 
     return main_db
@@ -40,18 +40,19 @@ def main():
     main_db = init_o9k()
 
     while True:
-        op = input("give an operation:\n").split()
+        op = input("give an operation:\n").split(" ")
 
         if op[0] in create:
             if len(op) > 2:
                 link = op[1:]
             elif len(op) == 2:
-                link = list(op[1])
+                link = [op[1]]
             else:
                 error_msg("Provide at least one openpowerlifting link to CREATE / C")
                 continue
             res = main_db.create_entry(link)
             print(res)
+            continue
         if op[0] in read:
             if len(op) > 2:
                 link = op[1:]
@@ -59,8 +60,9 @@ def main():
                 link = list(op[1])
             else:
                 link = "*"
-            res = main_db.read_entry(link)
-            print(res)
+            res = main_db.read_entry(link, link, "RESULTS")
+            for result in res:
+                print(result)
         if op[0] in update:
             pass
         if op[0] in delete:
