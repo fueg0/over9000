@@ -12,7 +12,7 @@ DEBUG = False
 # test create entry
 def test_create_operation(op_link, debug=DEBUG):
     utils.debug_print(f"test_create_operation:: \nopenpowerlifting link: {op_link}", debug)
-    db_test = py_console.init_o9k()
+    db_test = py_console.init_o9k(db="testdb_over9000.db")
 
     db_test.create_entry(op_link)
 
