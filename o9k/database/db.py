@@ -29,8 +29,8 @@ reals = RESULTS_HEADERS[9:32]
 #   DATABASE CREATION   #
 #                       #
 def setup_db(db, debug=DEBUG):
-    if not db:
-        db=DATABASE
+    if db is None:
+        db = DATABASE
     conn = sqlite3.connect(db)
     cursor = conn.cursor()
 
@@ -352,5 +352,3 @@ class Database:
 
     def refresh_entry(self, lifter_id):
         pass
-
-
