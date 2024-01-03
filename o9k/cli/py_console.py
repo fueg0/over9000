@@ -53,7 +53,14 @@ def main():
             res = main_db.create_entry(link)
             print(res)
         if op[0] in read:
-            pass
+            if len(op) > 2:
+                link = op[1:]
+            elif len(op) == 2:
+                link = list(op[1])
+            else:
+                link = "*"
+            res = main_db.read_entry(link)
+            print(res)
         if op[0] in update:
             pass
         if op[0] in delete:
