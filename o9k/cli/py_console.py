@@ -37,7 +37,7 @@ def init_o9k(database=None):
 
 
 def main():
-    main_db = init_o9k()
+    main_db = init_o9k(database="pyconsole_over9000.db")
 
     while True:
         op = input("give an operation:\n").split(" ")
@@ -63,6 +63,7 @@ def main():
             res = main_db.read_entry(link, link, "RESULTS")
             for result in res:
                 print(result)
+            continue
         if op[0] in update:
             pass
         if op[0] in delete:
