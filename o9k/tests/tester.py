@@ -12,7 +12,7 @@ DEBUG = False
 # test create entry
 def test_create_operation(op_link, debug=DEBUG):
     utils.debug_print(f"test_create_operation:: \nopenpowerlifting link: {op_link}", debug)
-    db_test = py_console.init_o9k(db="testdb_over9000.db")
+    db_test = py_console.init_o9k(database="testdb_over9000.db")
 
     db_test.create_entry(op_link)
 
@@ -32,7 +32,7 @@ def test_create_operation(op_link, debug=DEBUG):
 
 def test_console(op_link, debug=DEBUG):
     utils.debug_print(f"test_console:: \nopenpowerlifting link: {op_link}", debug)
-    db_test = py_console.init_o9k()
+    db_test = py_console.init_o9k(database="testdb_over9000.db")
 
     db_test.create_entry(op_link)
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
         test_create_operation_INPUT = [link]
 
         test_create_operation(test_create_operation_INPUT)
-        test_db = db.Database()
+        test_db = db.Database(database="testdb_over9000.db")
         o9k_res = test_db.conn.execute("SELECT ID, NAME, CSV from USERS")
 
         select_query = f"SELECT Squat2Kg, Bench2Kg, Deadlift2Kg, MeetID from RESULTS"
@@ -81,10 +81,6 @@ if __name__ == '__main__':
 
         for row in res:
             print(row)  # DEBUG print
-
-        test_db.conn.close()
-
-    test_db = db.Database()
 
     print("TEST READ")
     fields = ["Squat2Kg", "Bench2Kg", "Deadlift2Kg", "MeetID"]
