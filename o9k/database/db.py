@@ -28,8 +28,10 @@ reals = RESULTS_HEADERS[9:32]
 #                       #
 #   DATABASE CREATION   #
 #                       #
-def setup_db(debug=DEBUG):
-    conn = sqlite3.connect(DATABASE)
+def setup_db(db, debug=DEBUG):
+    if not db:
+        db=DATABASE
+    conn = sqlite3.connect(db)
     cursor = conn.cursor()
 
     # Check if USERS table exists
@@ -183,12 +185,12 @@ def csv_processing(csv_data, debug=DEBUG):
 
 
 class Database:
-    def __init__(self):
+    def __init__(self, database=None):
         self.user_headers = USER_HEADERS
         self.results_headers = RESULTS_HEADERS
-        self.conn = setup_db()
+        self.conn = setup_db(db=database)
 
-    def create_lifter(self, op_link, csv_data, csv_link, debug=DEBUG):
+    def create_lifter(self, op_link, csv_data, debug=DEBUG):
         LIFTER_HEADERS = ",".join(self.user_headers)
 
         lifter_entry = [str_cast(op_link), csv_data[0]["Name"], csv_data[0]["CSV"], NULL, NULL]
@@ -228,7 +230,7 @@ class Database:
             # TODO: check if op_link exists before doing all the stuff
             utils.debug_print(f"csv after processing: {csv_data}", debug)  # DEBUG print
             # Create LIFTER entry
-            self.create_lifter(op_link, csv_data, csv_link)
+            self.create_lifter(op_link, csv_data)
 
             # TODO: check if MeetID exists before doing all the stuff
             # Create RESULTS entry
